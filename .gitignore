@@ -1,0 +1,62 @@
+# Visual Studio
+.vs/
+
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# Visual Studio Code
+.vscode/
+
+# .NET
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.db
+*.bak
+*.log
+*.sqlite
+
+# Rider
+.idea/
+
+# Dependencies
+packages/
+*.nupkg
+*.snupkg
+.nuget/
+
+# Generated files
+*.dll
+*.exe
+*.pdb
+*.cache
+*.ide
+
+# Coverage reports
+coverage/
+
+# Environment
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Secrets (add manually if needed)
+secrets.json
+secrets/
+
+# Others
+*.tmp
