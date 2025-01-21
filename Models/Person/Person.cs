@@ -3,7 +3,6 @@ namespace FirstProject.Models.Person
     public class Person
     {
         public string Name { get; set; }
-
         public int Age { get; set; }
 
         public Person(string name, int age)

@@ -8,7 +8,8 @@ namespace FirstProject
         {
             // TestCalculator.Run();
             // TestPerson.Run();
-            TestAnimal.Run();
+            // TestAnimal.Run();
+            TestProduct.Run();
         }
     }
 }
