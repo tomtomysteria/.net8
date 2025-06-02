@@ -1,8 +1,8 @@
 using FirstProject.Models.Animal;
 
-namespace FirstProject.Tests
+namespace FirstProject.Demos
 {
-    public static class TestAnimal
+    public static class AnimalDemo
     {
         public static void Run()
         {

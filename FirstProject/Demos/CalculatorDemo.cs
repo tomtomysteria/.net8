@@ -1,8 +1,8 @@
 using FirstProject.Services;
 
-namespace FirstProject.Tests
+namespace FirstProject.Demos
 {
-    public static class TestCalculator
+    public static class CalculatorDemo
     {
         public static void Run()
         {

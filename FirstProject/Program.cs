@@ -1,4 +1,4 @@
-﻿using FirstProject.Tests;
+﻿using FirstProject.Demos;
 
 namespace FirstProject
 {
@@ -6,10 +6,10 @@ namespace FirstProject
     {
         static void Main(string[] args)
         {
-            // TestCalculator.Run();
-            // TestPerson.Run();
-            // TestAnimal.Run();
-            TestProduct.Run();
+            // CalculatorDemo.Run();
+            // PersonDemo.Run();
+            // AnimalDemo.Run();
+            ProductDemo.Run();
         }
     }
 }

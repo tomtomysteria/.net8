@@ -1,8 +1,8 @@
 using FirstProject.Models.Product;
 
-namespace FirstProject.Tests
+namespace FirstProject.Demos
 {
-    public static class TestProduct
+    public static class ProductDemo
     {
         public static void Run()
         {
