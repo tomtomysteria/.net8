@@ -7,9 +7,9 @@ namespace FirstProject
         static void Main(string[] args)
         {
             // CalculatorDemo.Run();
-            // PersonDemo.Run();
             // AnimalDemo.Run();
-            ProductDemo.Run();
+            // ProductDemo.Run();
+            PersonDemo.Run();
         }
     }
 }

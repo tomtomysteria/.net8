@@ -2,18 +2,22 @@ namespace FirstProject.Models.Person
 {
     public class Person
     {
-        public string Name { get; set; }
+        public int Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public int Age { get; set; }
 
-        public Person(string name, int age)
+        public Person(int id, string firstName, string lastName, int age)
         {
-            Name = name;
+            Id = id;
+            FirstName = firstName;
+            LastName = lastName;
             Age = age;
         }
 
         public virtual void IntroduceOneself()
         {
-            Console.WriteLine($"Je m'appelle {Name} et j'ai {Age} ans.");
+            Console.WriteLine($"Je m'appelle {FirstName} {LastName} et j'ai {Age} ans.");
         }
 
     }

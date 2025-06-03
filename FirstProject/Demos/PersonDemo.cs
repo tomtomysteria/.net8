@@ -6,17 +6,68 @@ namespace FirstProject.Demos
     {
         public static void Run()
         {
-            var person1 = new Person("Bruno", 26);
+            var person1 = new Person(1, "Bruno", "Lampion", 26);
             person1.IntroduceOneself();
 
-            var person2 = new Person("Vanessa", 78);
+            var person2 = new Person(2, "Vanessa", "Dupont", 78);
             person2.IntroduceOneself();
 
-            var student1 = new Student("Léon", 32, "Joubert");
+            var student1 = new Student(3, "Léon", "Durant", 32, "Joubert", 15.5);
             student1.IntroduceOneself();
 
-            var student2 = new Student("Jocelyne", 6, "Pompidou");
+            var student2 = new Student(4, "Jocelyne", "Poupou", 6, "Lycée Voltaire", 14.0);
             student2.IntroduceOneself();
+
+            List<Student> students = [];
+
+            for (int i = 1; i <= 10; i++)
+            {
+                var student = new Student(i, $"Student {i}", $"LastName {i}", 20 + i, $"School {i}", 10 + i);
+                students.Add(student);
+            }
+
+            var bestStudents = students
+                .Where(s => s.Grade >= 15)
+                .OrderByDescending(s => s.Grade)
+                .ToList();
+
+            Console.WriteLine("\nMeilleurs étudiants :");
+            foreach (var student in bestStudents)
+            {
+                Console.WriteLine($"ID: {student.Id}, Nom: {student.FirstName} {student.LastName}, Âge: {student.Age}, École: {student.Ecole}, Note: {student.Grade}");
+            }
+
+            var averageGrade = students.Average(s => s.Grade);
+            Console.WriteLine($"\nNote moyenne des étudiants : {averageGrade:F2}");
+
+            List<Employee> employees = new List<Employee>();
+            for (int i = 1; i <= 5; i++)
+            {
+                var employee = new Employee(i, $"Employee {i}", $"LastName {i}", 30 + i, 2000 + (i * 100));
+                employees.Add(employee);
+            }
+            Console.WriteLine("\nListe des employés :");
+            foreach (var employee in employees)
+            {
+                Console.WriteLine($"ID: {employee.Id}, Nom: {employee.FirstName} {employee.LastName}, Âge: {employee.Age}, Salaire: {employee.Salary}");
+            }
+
+            Console.WriteLine("\nEmployé avec l'Id 3 :");
+            var specificEmployee = employees.FirstOrDefault(e => e.Id == 3);
+            if (specificEmployee != null)
+            {
+                Console.WriteLine($"ID: {specificEmployee.Id}, Nom: {specificEmployee.FirstName} {specificEmployee.LastName}, Âge: {specificEmployee.Age}, Salaire: {specificEmployee.Salary}");
+            }
+            else
+            {
+                Console.WriteLine("Aucun employé trouvé avec l'ID 3.");
+            }
+
+            Console.WriteLine("\nEmployés dont l'id est pair :");
+            foreach (var employee in employees.Where(e => e.Id % 2 == 0))
+            {
+                Console.WriteLine($"ID: {employee.Id}, Nom: {employee.FirstName} {employee.LastName}, Âge: {employee.Age}, Salaire: {employee.Salary}");
+            }
         }
     }
 }
