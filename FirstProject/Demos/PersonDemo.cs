@@ -40,20 +40,24 @@ namespace FirstProject.Demos
             var averageGrade = students.Average(s => s.Grade);
             Console.WriteLine($"\nNote moyenne des étudiants : {averageGrade:F2}");
 
-            List<Employee> employees = new List<Employee>();
+
+
+
+            Dictionary<int, Employee> employees = [];
             for (int i = 1; i <= 5; i++)
             {
                 var employee = new Employee(i, $"Employee {i}", $"LastName {i}", 30 + i, 2000 + (i * 100));
-                employees.Add(employee);
+                employees.Add(employee.Id, employee);
             }
+
             Console.WriteLine("\nListe des employés :");
-            foreach (var employee in employees)
+            foreach (var employee in employees.Values)
             {
                 Console.WriteLine($"ID: {employee.Id}, Nom: {employee.FirstName} {employee.LastName}, Âge: {employee.Age}, Salaire: {employee.Salary}");
             }
 
             Console.WriteLine("\nEmployé avec l'Id 3 :");
-            var specificEmployee = employees.FirstOrDefault(e => e.Id == 3);
+            var specificEmployee = employees.FirstOrDefault(e => e.Key == 3).Value;
             if (specificEmployee != null)
             {
                 Console.WriteLine($"ID: {specificEmployee.Id}, Nom: {specificEmployee.FirstName} {specificEmployee.LastName}, Âge: {specificEmployee.Age}, Salaire: {specificEmployee.Salary}");
@@ -64,7 +68,7 @@ namespace FirstProject.Demos
             }
 
             Console.WriteLine("\nEmployés dont l'id est pair :");
-            foreach (var employee in employees.Where(e => e.Id % 2 == 0))
+            foreach (var employee in employees.Where(e => e.Key % 2 == 0).Select(e => e.Value))
             {
                 Console.WriteLine($"ID: {employee.Id}, Nom: {employee.FirstName} {employee.LastName}, Âge: {employee.Age}, Salaire: {employee.Salary}");
             }
