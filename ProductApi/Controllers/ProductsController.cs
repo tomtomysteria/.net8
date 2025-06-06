@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Data;
 using ProductApi.Dto.Product;
@@ -90,6 +91,30 @@ public class ProductsController : ControllerBase
         {
             return NotFound(ex.Message);
         }
+    }
+
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> PatchProduct(int id, JsonPatchDocument<Product> patchDocument)
+    {
+        if (patchDocument == null)
+            return BadRequest("Le document de patch est requis.");
+
+        var product = await _context.Products
+            .Include(p => p.Tags)
+            .Include(p => p.ProductDetail)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (product == null)
+            return NotFound("Produit non trouvé.");
+
+        // Appliquer les modifications
+        patchDocument.ApplyTo(product, ModelState);
+
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        await _context.SaveChangesAsync();
+        return NoContent();
     }
 
     [HttpDelete("{id}")]

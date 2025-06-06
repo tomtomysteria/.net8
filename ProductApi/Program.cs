@@ -8,8 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer(); // Ajoute les services nécessaires pour explorer les endpoints de l'application, utile pour la documentation OpenAPI/Swagger.
 builder.Services.AddSwaggerGen(); // Configure Swagger pour générer automatiquement la documentation de l'API, permettant une interface interactive pour tester les endpoints.
 
-builder.Services.AddControllers(); // Enregistre les services nécessaires pour les contrôleurs dans le conteneur d'injection de dépendances.
-
+builder.Services.AddControllers().AddNewtonsoftJson(); // Enregistre les services nécessaires pour les contrôleurs dans le conteneur d'injection de dépendances et ajoute le support pour le formatage JSON via Newtonsoft.
 builder.Services.AddDbContext<ProductDbContext>(options => options.UseSqlite("Data Source=products.db")); // Configure le contexte de base de données ProductDbContext pour utiliser SQLite comme fournisseur, avec un fichier de base de données nommé 'products.db'.
 
 var app = builder.Build();

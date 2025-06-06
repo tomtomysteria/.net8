@@ -1,0 +1,3 @@
+# temporarily duplicate ignoring of these files until a fix is found
+ProductApi/*.db-shm
+ProductApi/*.db-wal
