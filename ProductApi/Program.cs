@@ -1,10 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using ProductApi.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddControllers(); // Ajout des services pour les contrôleurs
+builder.Services.AddEndpointsApiExplorer(); // Ajoute les services nécessaires pour explorer les endpoints de l'application, utile pour la documentation OpenAPI/Swagger.
+builder.Services.AddSwaggerGen(); // Configure Swagger pour générer automatiquement la documentation de l'API, permettant une interface interactive pour tester les endpoints.
+
+builder.Services.AddControllers(); // Enregistre les services nécessaires pour les contrôleurs dans le conteneur d'injection de dépendances.
+
+builder.Services.AddDbContext<ProductDbContext>(options => options.UseSqlite("Data Source=products.db")); // Configure le contexte de base de données ProductDbContext pour utiliser SQLite comme fournisseur, avec un fichier de base de données nommé 'products.db'.
 
 var app = builder.Build();
 
@@ -15,6 +21,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Décommenter la ligne suivante si HTTPS est nécessaire
+// app.UseHttpsRedirection();
 
-app.Run();
+app.MapControllers(); // Configure les routes des contrôleurs dans le pipeline HTTP pour gérer les requêtes.
+await app.RunAsync();

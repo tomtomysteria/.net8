@@ -1,109 +1,307 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ProductApi.Data;
+using ProductApi.Dto.Product;
 using ProductApi.Models.Product;
 
 namespace ProductApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/products")]
 public class ProductsController : ControllerBase
 {
-    private static List<Product> products = new List<Product>
-    {
-        new Product { Id = 1, Name = "Clavier", Price = 49.99M, Category = "Electronics" },
-        new Product { Id = 2, Name = "Souris", Price = 29.99M, Category = "Electronics" }
-    };
+    // ********** CONSTANTS AND STATIC FIELDS **********
 
-    [HttpGet]
-    public ActionResult<IEnumerable<Product>> GetAll()
+
+    // ********** PRIVATE FIELDS **********
+    private readonly ProductDbContext _context;
+
+    // ********** CONSTRUCTOR **********
+    public ProductsController(ProductDbContext context)
     {
+        _context = context;
+    }
+
+    // ********** PUBLIC PROPERTIES **********
+
+    // ********** PUBLIC METHODS **********
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
+    {
+        var products = await GetProductDtoQuery().ToListAsync();
         return Ok(products);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Product> GetById(int id)
+    public async Task<ActionResult<ProductDto>> GetById(int id)
     {
-        var product = products.FirstOrDefault(p => p.Id == id);
-        if (product == null) return NotFound("Produit non trouvé.");
+        var product = await GetProductDtoQuery().FirstOrDefaultAsync(p => p.Id == id);
+
+        if (product == null)
+            return NotFound("Produit non trouvé.");
+
         return Ok(product);
     }
 
     [HttpPost]
-    public ActionResult<Product> Create(Product product)
+    public async Task<ActionResult<ProductDto>> Create(CreateOrUpdateProductDto createProductDto)
     {
-        if (string.IsNullOrWhiteSpace(product.Name))
-        {
-            return BadRequest("Le nom du produit ne peut pas être vide.");
-        }
+        if (string.IsNullOrWhiteSpace(createProductDto.Name) || createProductDto.Price <= 0)
+            return BadRequest("Nom ou prix invalide.");
 
-        if (product.Price <= 0)
+        try
         {
-            return BadRequest("Le prix du produit doit être supérieur à zéro.");
-        }
+            var product = await CreateOrUpdateProductAsync(createProductDto);
+            _context.Products.Add(product);
+            await _context.SaveChangesAsync();
 
-        product.Id = products.Max(p => p.Id) + 1;
-        products.Add(product);
-        return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+            var productDto = await GetProductDtoQuery().FirstOrDefaultAsync(p => p.Id == product.Id);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, productDto);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, Product updatedProduct)
+    public async Task<ActionResult<ProductDto>> Update(int id, CreateOrUpdateProductDto updateProductDto)
     {
-        var product = products.FirstOrDefault(p => p.Id == id);
+        var product = await _context.Products
+            .Include(p => p.Tags)
+            .Include(p => p.ProductDetail)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (product == null)
-        {
-            return NotFound($"Aucun produit trouvé avec l'ID {id}.");
-        }
+            return NotFound("Produit non trouvé.");
 
-        if (string.IsNullOrWhiteSpace(updatedProduct.Name))
-        {
-            return BadRequest("Le nom du produit ne peut pas être vide.");
-        }
+        if (string.IsNullOrWhiteSpace(updateProductDto.Name) || updateProductDto.Price <= 0)
+            return BadRequest("Nom ou prix invalide.");
 
-        if (updatedProduct.Price <= 0)
+        try
         {
-            return BadRequest("Le prix du produit doit être supérieur à zéro.");
-        }
+            product = await CreateOrUpdateProductAsync(updateProductDto, product);
+            await _context.SaveChangesAsync();
 
-        product.Name = updatedProduct.Name;
-        product.Price = updatedProduct.Price;
-        return NoContent();
+            var productDto = await GetProductDtoQuery().FirstOrDefaultAsync(p => p.Id == product.Id);
+            return Ok(productDto);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        var product = products.FirstOrDefault(p => p.Id == id);
+        var product = await _context.Products.FindAsync(id);
         if (product == null) return NotFound("Produit non trouvé.");
 
-        products.Remove(product);
+        _context.Products.Remove(product);
+        await _context.SaveChangesAsync();
         return NoContent();
     }
 
     [HttpGet("category/{category}")]
-    public ActionResult<IEnumerable<Product>> GetByCategory(string category)
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetByCategory(string category)
     {
-        var filteredProducts = products.Where(p => p.Category.Equals(category, StringComparison.OrdinalIgnoreCase)).ToList();
-        if (!filteredProducts.Any()) return NotFound("Aucun produit trouvé pour cette catégorie.");
+        var filteredProducts = await GetProductDtoQuery()
+            .Where(p => p.Category.Name.ToLower() == category.ToLower())
+            .ToListAsync();
+
+        if (!filteredProducts.Any())
+            return NotFound("Aucun produit trouvé pour cette catégorie.");
+
         return Ok(filteredProducts);
     }
 
     [HttpGet("search")]
-    public ActionResult<IEnumerable<Product>> Search([FromQuery] string term)
+    public async Task<ActionResult<IEnumerable<ProductDto>>> Search([FromQuery] string term)
     {
         if (string.IsNullOrWhiteSpace(term))
         {
             return BadRequest("Le terme de recherche ne peut pas être vide.");
         }
 
-        var matchingProducts = products
-            .Where(p => p.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        var matchingProducts = await GetProductDtoQuery()
+            .Where(p => p.Name.ToLower().Contains(term.ToLower()) || p.Category.Name.ToLower().Contains(term.ToLower()))
+            .ToListAsync();
 
         if (!matchingProducts.Any())
         {
-            return NotFound($"Aucun produit trouvé contenant le terme '{term}'.");
+            return NotFound($"Aucun produit trouvé contenant le terme '{term}' dans le nom ou la catégorie.");
         }
 
         return Ok(matchingProducts);
+    }
+
+    [HttpGet("sorted")]
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetSortedProducts([FromQuery] string by, [FromQuery] string order)
+    {
+        if (string.IsNullOrWhiteSpace(by) || string.IsNullOrWhiteSpace(order))
+        {
+            return BadRequest("Les paramètres 'by' et 'order' sont requis.");
+        }
+
+        IQueryable<ProductDto> query = GetProductDtoQuery();
+
+        switch (by.ToLower())
+        {
+            case "id":
+                query = order.ToLower() == "desc" ? query.OrderByDescending(p => p.Id) : query.OrderBy(p => p.Id);
+                break;
+            case "name":
+                query = order.ToLower() == "desc" ? query.OrderByDescending(p => p.Name) : query.OrderBy(p => p.Name);
+                break;
+            case "price":
+                query = order.ToLower() == "desc" ? query.OrderByDescending(p => p.Price) : query.OrderBy(p => p.Price);
+                break;
+            case "category":
+                query = order.ToLower() == "desc" ? query.OrderByDescending(p => p.Category.Name) : query.OrderBy(p => p.Category.Name);
+                break;
+            case "stock":
+                query = order.ToLower() == "desc" ? query.OrderByDescending(p => p.Stock) : query.OrderBy(p => p.Stock);
+                break;
+            default:
+                return BadRequest($"Le critère '{by}' n'est pas valide. Utilisez 'id', 'name', 'price', 'category', ou 'stock'.");
+        }
+
+        var sortedProducts = await query.ToListAsync();
+
+        if (!sortedProducts.Any())
+        {
+            return NotFound("Aucun produit trouvé.");
+        }
+
+        return Ok(sortedProducts);
+    }
+
+    [HttpGet("{id}/details")]
+    public async Task<ActionResult<ProductDetailDto>> GetProductDetails(int id)
+    {
+        var productDetail = await _context.ProductDetails
+            .Where(pd => pd.ProductId == id)
+            .Select(pd => new ProductDetailDto
+            {
+                Id = pd.Id,
+                Description = pd.Description,
+                Manufacturer = pd.Manufacturer
+            })
+            .FirstOrDefaultAsync();
+
+        if (productDetail == null)
+            return NotFound("Détails du produit non trouvés.");
+
+        return Ok(productDetail);
+    }
+
+    [HttpPut("{id}/details")]
+    public async Task<IActionResult> UpdateProductDetails(int id, ProductDetailDto updatedDetailsDto)
+    {
+        var productDetail = await _context.ProductDetails.FirstOrDefaultAsync(pd => pd.ProductId == id);
+
+        if (productDetail == null)
+            return NotFound("Détails du produit non trouvés.");
+
+        productDetail.Description = updatedDetailsDto.Description;
+        productDetail.Manufacturer = updatedDetailsDto.Manufacturer;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpPost("{id}/tags")]
+    public async Task<IActionResult> AddTagToProduct(int id, TagDto tagDto)
+    {
+        var product = await _context.Products.Include(p => p.Tags).FirstOrDefaultAsync(p => p.Id == id);
+        var tag = await _context.Tags.FindAsync(tagDto.Id);
+
+        if (product == null || tag == null)
+            return NotFound("Produit ou tag non trouvé.");
+
+        product.Tags.Add(tag);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}/tags/{tagId}")]
+    public async Task<IActionResult> RemoveTagFromProduct(int id, int tagId)
+    {
+        var product = await _context.Products.Include(p => p.Tags).FirstOrDefaultAsync(p => p.Id == id);
+        var tag = await _context.Tags.FindAsync(tagId);
+
+        if (product == null || tag == null)
+            return NotFound("Produit ou tag non trouvé.");
+
+        product.Tags.Remove(tag);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    // ********** PRIVATE METHODS **********
+    // Logique de projection
+    private IQueryable<ProductDto> GetProductDtoQuery()
+    {
+        return _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.Tags)
+            .Include(p => p.ProductDetail)
+            .Select(p => new ProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                Stock = p.Stock,
+                Category = new CategoryDto
+                {
+                    Id = p.Category.Id,
+                    Name = p.Category.Name
+                },
+                Tags = p.Tags.Select(t => new TagDto
+                {
+                    Id = t.Id,
+                    Name = t.Name
+                }).ToList(),
+                ProductDetail = new ProductDetailDto
+                {
+                    Id = p.ProductDetail.Id,
+                    Description = p.ProductDetail.Description,
+                    Manufacturer = p.ProductDetail.Manufacturer
+                }
+            });
+    }
+
+    // Logique de création ou mise à jour
+    private async Task<Product> CreateOrUpdateProductAsync(CreateOrUpdateProductDto productDto, Product? existingProduct = null)
+    {
+        var category = await _context.Categories.FindAsync(productDto.CategoryId);
+        if (category == null)
+            throw new KeyNotFoundException("Catégorie non trouvée.");
+
+        var tags = await _context.Tags
+            .Where(t => productDto.TagIds.Contains(t.Id))
+            .ToListAsync();
+
+        var product = existingProduct ?? new Product();
+
+        product.Name = productDto.Name;
+        product.Price = productDto.Price;
+        product.Stock = productDto.Stock;
+        product.CategoryId = productDto.CategoryId;
+        product.Category = category;
+        product.Tags = tags;
+
+        if (product.ProductDetail == null)
+        {
+            product.ProductDetail = new ProductDetail();
+        }
+
+        product.ProductDetail.Description = productDto.ProductDetail.Description;
+        product.ProductDetail.Manufacturer = productDto.ProductDetail.Manufacturer;
+
+        return product;
     }
 }

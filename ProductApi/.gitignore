@@ -65,5 +65,7 @@ secrets/
 ProductApi/bin/
 ProductApi/obj/
 ProductApi/*.db
+ProductApi/*.db-shm
+ProductApi/*.db-wal
 ProductApi/*.sqlite
 ProductApi/*.log
