@@ -4,9 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using ProductApi.Data;
 using ProductApi.Dto.Product;
 using ProductApi.Models.Product;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ProductApi.Controllers;
 
+[Authorize] // Assurez-vous que l'utilisateur est authentifié avant d'accéder à ces endpoints
 [ApiController]
 [Route("api/products")]
 public class ProductsController : ControllerBase
@@ -26,6 +28,13 @@ public class ProductsController : ControllerBase
     // ********** PUBLIC PROPERTIES **********
 
     // ********** PUBLIC METHODS **********
+    [AllowAnonymous]
+    [HttpGet("public")]
+    public IActionResult PublicEndpoint()
+    {
+        return Ok("Ceci est une réponse publique, aucun token requis.");
+    }
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
     {
@@ -117,6 +126,7 @@ public class ProductsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = "admin")] // Accessible uniquement aux administrateurs
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

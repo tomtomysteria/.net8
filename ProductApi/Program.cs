@@ -22,7 +22,26 @@ builder.Services
     .AddSorting()
     .AddProjections();
 
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.Authority = "https://dev-2rek7c5eos7paoe5.eu.auth0.com"; // ton domaine Auth0
+        options.Audience = "https://dev-2rek7c5eos7paoe5.eu.auth0.com/api/v2/"; // valeur par défaut pour Auth0
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("EmailPolicy", policy =>
+        policy.RequireAssertion(context =>
+            context.User.HasClaim(c => c.Type == "email" && c.Value.EndsWith("@cohesia.com"))
+        ));
+});
+
+
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
