@@ -74,6 +74,14 @@ Le projet est structuré autour de deux sous-projets :
   dotnet watch
   ```
 
+### Nettoyage
+
+- Nettoyer le projet pour supprimer les fichiers temporaires et les artefacts de compilation :
+
+  ```bash
+  dotnet clean
+  ```
+
 ### Tests
 
 - Si des tests unitaires sont ajoutés, exécutez-les avec :

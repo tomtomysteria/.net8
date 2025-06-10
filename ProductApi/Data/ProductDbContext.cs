@@ -9,14 +9,14 @@ public class ProductDbContext : DbContext
 
   public DbSet<Product> Products { get; set; }
   public DbSet<Category> Categories { get; set; }
-  public DbSet<Tag> Tags { get; set; }
+  public DbSet<ProductTag> Tags { get; set; }
   public DbSet<ProductDetail> ProductDetails { get; set; }
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
     modelBuilder.Entity<Product>().ToTable("product");
     modelBuilder.Entity<Category>().ToTable("category");
-    modelBuilder.Entity<Tag>().ToTable("tag");
+    modelBuilder.Entity<ProductTag>().ToTable("tag");
     modelBuilder.Entity<ProductDetail>().ToTable("product_detail");
 
     // Many-to-One relation between Product and Category
