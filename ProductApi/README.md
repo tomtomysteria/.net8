@@ -54,6 +54,18 @@ dotnet watch
 
 L'API sera accessible par défaut à l'adresse suivante : `http://localhost:5000`.
 
+## Documentation des API
+
+### Swagger
+
+La documentation Swagger est disponible à l'adresse suivante :
+[http://localhost:5156/swagger/index.html](http://localhost:5156/swagger/index.html)
+
+### GraphQL
+
+L'interface GraphQL est accessible à l'adresse suivante :
+[http://localhost:5156/graphql/](http://localhost:5156/graphql/)
+
 ## Documentation
 
 Pour plus de détails sur les concepts techniques et métier, consultez le fichier [DOCS.md](DOCS.md).
